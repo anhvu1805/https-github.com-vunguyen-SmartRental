@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Rental - Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { display: flex; background: #f4f7f6; height: 100vh; }
+        #sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; }
+        #main { flex: 1; padding: 20px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
+        .room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid #bdc3c7; }
+        .card.occupied { border-top-color: #3498db; background: #eef7ff; }
+        .price { color: #e74c3c; font-weight: bold; font-size: 1.2em; margin: 10px 0; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; transition: 0.3s; }
+        .btn-add { background: #2ecc71; }
+        .btn-add:hover { background: #27ae60; }
+        .btn-del { background: #e74c3c; width: 100%; margin-top: 15px; }
+        .btn-del:hover { background: #c0392b; }
+        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index: 1000; }
+        .modal-box { background: white; padding: 25px; border-radius: 10px; width: 350px; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2 style="margin-bottom: 30px;">🏠 SMART RENTAL</h2>
+    <p style="padding: 10px 0; border-bottom: 1px solid #34495e; cursor: pointer;">📋 Danh sách phòng</p>
+    <p style="padding: 10px 0; color: #7f8c8d; cursor: not-allowed;">⚡ Dịch vụ (Sắp có)</p>
+</div>
+
+<div id="main">
+    <div class="header">
+        <h1>Quản lý phòng trọ</h1>
+        <button class="btn btn-add" onclick="showModal()">+ Thêm phòng mới</button>
+    </div>
+    
+    <div id="room-container" class="room-grid"></div>
+</div>
+
+<div id="modal">
+    <div class="modal-box">
+        <h3>Thông tin phòng</h3>
+        <input type="text" id="num" placeholder="Số phòng (VD: 101)">
+        <input type="number" id="prc" placeholder="Giá thuê (VNĐ)">
+        <select id="sts">
+            <option value="Available">Trống (Available)</option>
+            <option value="Occupied">Đã thuê (Occupied)</option>
+        </select>
+        <button class="btn btn-add" style="width:100%; margin-bottom: 10px;" onclick="saveRoom()">Lưu dữ liệu</button>
+        <button class="btn" style="width:100%; background: #95a5a6;" onclick="closeModal()">Đóng</button>
+    </div>
+</div>
+
+<script>
+    const API = "http://localhost:5000/api/rooms";
+
+    async function loadRooms() {
+        try {
+            const res = await fetch(API);
+            const data = await res.json();
+            const container = document.getElementById('room-container');
+            
+            container.innerHTML = data.map(r => `
+                <div class="card ${r.status === 'Occupied' ? 'occupied' : ''}">
+                    <div style="font-size: 0.9em; color: #7f8c8d;">MÃ: ${r._id.substring(r._id.length - 5)}</div>
+                    <h2 style="margin: 10px 0;">Phòng ${r.roomNumber}</h2>
+                    <p style="font-weight: bold; color: ${r.status === 'Occupied' ? '#3498db' : '#2ecc71'}">
+                        ${r.status === 'Occupied' ? '👤 Đã có khách' : '✨ Đang trống'}
+                    </p>
+                    <div class="price">${Number(r.price).toLocaleString()}đ</div>
+                    <button class="btn btn-del" onclick="deleteRoom('${r._id}')">Xóa phòng</button>
+                </div>
+            `).join('');
+        } catch (err) {
+            document.getElementById('room-container').innerHTML = "Lỗi kết nối Server!";
+        }
+    }
+
+    async function saveRoom() {
+        const roomNumber = document.getElementById('num').value;
+        const price = document.getElementById('prc').value;
+        const status = document.getElementById('sts').value;
+
+        if(!roomNumber || !price) return alert("Vui lòng điền đủ tin!");
+
+        await fetch(API, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ roomNumber, price, status })
+        });
+
+        closeModal();
+        loadRooms();
+        document.getElementById('num').value = '';
+        document.getElementById('prc').value = '';
+    }
+
+    async function deleteRoom(id) {
+        if(confirm("Xác nhận xóa phòng này khỏi hệ thống?")) {
+            await fetch(`${API}/${id}`, { method: 'DELETE' });
+            loadRooms();
+        }
+    }
+
+    function showModal() { document.getElementById('modal').style.display='flex'; }
+    function closeModal() { document.getElementById('modal').style.display='none'; }
+    
+    window.onload = loadRooms;
+</script>
+
+</body>
+</html>

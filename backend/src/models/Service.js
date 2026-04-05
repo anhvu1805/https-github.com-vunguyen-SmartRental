@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
-const ServiceSchema = new mongoose.Schema({
+const serviceSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    unitPrice: { type: Number, required: true },
-    unit: { type: String, required: true } 
-}, { timestamps: true });
+    price: { type: Number, required: true },
+    unit: { type: String, required: true } ,
+});
 
-module.exports = mongoose.model('Service', ServiceSchema);
+module.exports = mongoose.model('Service', serviceSchema);

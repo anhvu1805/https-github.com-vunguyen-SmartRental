@@ -1,12 +1,9 @@
 const adminMiddleware = (req, res, next) => {
-    // Kiểm tra header x-admin-token hoặc x-user-role
-    const userRole = req.headers['x-user-role'];
-    
-    if (userRole === 'admin') {
-        return next();
-    }
-    
-    return res.status(403).json({ error: 'Chỉ admin mới được thực hiện action này' });
-};
+  const roleHeader = req.headers['x-user-role']
+  if (req.user?.role === 'admin' || roleHeader === 'admin') {
+    return next()
+  }
+  return res.status(403).json({ error: 'Chỉ admin mới được thực hiện action này' })
+}
 
-module.exports = adminMiddleware;
+module.exports = adminMiddleware

@@ -10,6 +10,7 @@ const serviceRoutes = require('./src/routes/serviceRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const contractRoutes = require('./src/routes/contractRoutes');
 const authRoutes = require('./src/routes/authRoutes');
+const paymentRoutes = require('./src/routes/paymentRoutes');
 
 const app = express();
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -34,6 +35,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/payments', paymentRoutes);
 
 const PORT = process.env.PORT || 5000;
 
